@@ -351,9 +351,9 @@ export default function App(){
           <div className="cta-ttl">Your Next Step</div>
           <div className="cta-sub">Schedule your complimentary 30-minute Course Correction Debrief</div>
           <div className="cta-det">In this conversation we will review your scores, discuss the patterns your assessment revealed,<br/>and co-create a course correction sequence that fits your business — not a generic prescription.</div>
-          <button className="btn btn-gold" onClick={()=>window.open("https://www.https://calendly.com/threedegreesconsulting","_blank")}>Schedule My Debrief →</button>
+          <button className="btn btn-gold" onClick={()=>window.open("https://www.https://calendly.com/threedegreesconsulting/30mindegreesconsulting","_blank")}>Schedule My Debrief →</button>
           <div className="cta-name">Brian O'Riordan  |  Three Degrees Consulting</div>
-          <div className="cta-url">www.https://calendly.com/threedegreesconsulting</div>
+          <div className="cta-url">www.https://calendly.com/threedegreesconsulting/30mindegreesconsulting</div>
         </div>
 
         <div style={{textAlign:"center",marginTop:32}}>
