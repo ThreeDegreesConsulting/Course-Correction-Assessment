@@ -165,7 +165,8 @@ export default function App(){
   const[phase,setPhase]=useState("welcome");
   const[cur,setCur]=useState(0);
   const[answers,setAnswers]=useState(SECTIONS.map(s=>s.questions.map(()=>null)));
-  const[part,setPart]=useState({name:"",company:"",date:"",sector:""});
+  const[part,setPart]=useState({name:"",email:"",company:"",date:"",sector:""});
+  const[submitted,setSubmitted]=useState(false);
   const ref=useRef(null);
   const total=SECTIONS.reduce((a,s)=>a+s.questions.length,0);
   const done=answers.flat().filter(a=>a!==null).length;
@@ -184,6 +185,32 @@ export default function App(){
   const order=[0,1,2,3].map(i=>({idx:i,score:scores[i]})).sort((a,b)=>a.score-b.score);
   const pri=s=>{if(s<2.6)return{label:"Immediate",color:C.red};if(s<3.5)return{label:"High",color:C.amber};if(s<4.0)return{label:"Consider",color:C.teal};return{label:"Strong",color:C.green};};
   const today=new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+
+  async function submitResults(){
+    if(submitted)return;
+    const sectionSummary=SECTIONS.map((sec,i)=>`${sec.title}: ${scores[i].toFixed(2)}/5.0 (${getBand(scores[i]).label})`).join("\n");
+    const seqText=order.map((item,step)=>`${step+1}. ${SECTIONS[item.idx].workbook} — Priority: ${pri(item.score).label}`).join("\n");
+    try{
+      await fetch("https://formspree.io/f/xlgpgebj",{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({
+          _replyto:part.email||"",
+          _subject:`Course Correction Assessment — ${part.name||"Anonymous"} · ${profile} Profile · ${overall.toFixed(1)}/5.0`,
+          Name:part.name||"Not provided",
+          Email:part.email||"Not provided",
+          Company:part.company||"Not provided",
+          Industry:part.sector||"Not provided",
+          Date:part.date||today,
+          "Overall Score":`${overall.toFixed(2)}/5.0`,
+          "Organization Profile":`${profile} — ${pd.tagline}`,
+          "Section Scores":sectionSummary,
+          "Recommended Sequence":seqText,
+        })
+      });
+      setSubmitted(true);
+    }catch(e){console.error("Formspree error",e);}
+  }
 
   return(<><style>{styles}</style>
   <div className="app">
@@ -220,8 +247,8 @@ export default function App(){
         <div className="section-label">Four Sections · 8 Questions Each</div>
         <div className="grid2">{SECTIONS.map(s=><div key={s.id} className="wcard"><div className="wcard-num">Section {s.id}</div><div className="wcard-title">{s.title}</div></div>)}</div>
         <div className="section-label">Your Details</div>
-        <div className="pform">{[["name","Your Name"],["company","Company / Organization"],["date","Today's Date"],["sector","Industry / Sector"]].map(([k,l])=>
-          <div key={k}><label className="flabel">{l}</label><input className="finput" value={part[k]} onChange={e=>setPart(p=>({...p,[k]:e.target.value}))} placeholder={k==="date"?today:l}/></div>
+        <div className="pform">{[["name","Your Name"],["email","Email Address"],["company","Company / Organization"],["date","Today's Date"],["sector","Industry / Sector"]].map(([k,l])=>
+          <div key={k}><label className="flabel">{l}</label><input className="finput" type={k==="email"?"email":"text"} value={part[k]} onChange={e=>setPart(p=>({...p,[k]:e.target.value}))} placeholder={k==="date"?today:l}/></div>
         )}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
           <button className="btn btn-navy" onClick={()=>{setPhase("section");top();}}>Begin Assessment →</button>
@@ -260,6 +287,7 @@ export default function App(){
 
     {/* ── RESULTS ── */}
     {phase==="results"&&<div className="card fade-in">
+      {submitted===false&&submitResults()}
       {/* Hero */}
       <div className="sc-hero">
         <div className="sc-ey">Course Correction Series · Strategic Assessment Scorecard</div>
